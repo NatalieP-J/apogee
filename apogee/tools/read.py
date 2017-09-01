@@ -148,8 +148,7 @@ def allStar(rmcommissioning=True,
     if rmcommissioning:
         indx= numpy.array(['apogee.n.c'.encode('utf-8') in s for s in data['APSTAR_ID']])
         indx+= numpy.array(['apogee.s.c'.encode('utf-8') in s for s in data['APSTAR_ID']])
-        indx = [not i for i in indx]
-        data= data[indx]
+        data= data[True^indx]
     if rmnovisits:
         indx= numpy.array([s.strip() != '' for s in data['VISITS']])
         data= data[indx]
@@ -161,9 +160,7 @@ def allStar(rmcommissioning=True,
     elif akvers.lower() == 'wise':
         aktag= 'AK_WISE'
     if ak:
-        indx = numpy.isnan(data[aktag])
-        indx = [not i for i in indx]
-        data= data[indx]
+        data= data[True^numpy.isnan(data[aktag])]
         data= data[(data[aktag] > -50.)]
     if exclude_star_bad:
         data= data[(data['ASPCAPFLAG'] & 2**23) == 0]
@@ -287,8 +284,7 @@ def allVisit(rmcommissioning=True,
     if rmcommissioning:
         indx= numpy.array(['apogee.n.c'.encode('utf-8') in s for s in data['VISIT_ID']])
         indx+= numpy.array(['apogee.s.c'.encode('utf-8') in s for s in data['VISIT_ID']])
-        indx = [not i for i in indx]
-        data= data[indx]
+        data= data[True^indx]
     if main:
         indx= mainIndx(data)
         data= data[indx]
@@ -297,9 +293,7 @@ def allVisit(rmcommissioning=True,
     elif akvers.lower() == 'wise':
         aktag= 'AK_WISE'
     if ak:
-        indx = numpy.isnan(data[aktag])
-        indx = [not i for i in indx]
-        data= data[indx]
+        data= data[True^numpy.isnan(data[aktag])]
         data= data[(data[aktag] > -50.)]
     if plateInt or plateS4:
         #If plate is a string, cast it as an integer
@@ -551,9 +545,7 @@ def apogeeObject(field_name,dr=None,
     elif akvers.lower() == 'wise':
         aktag= 'AK_WISE'
     if ak:
-        indx = numpy.isnan(data[aktag])
-        indx = [not i for i in indx]
-        data= data[indx]
+        data= data[True^numpy.isnan(data[aktag])]
         data= data[(data[aktag] > -50.)]
     #Add dereddened J, H, and Ks
     aj= data[aktag]*2.5
@@ -829,12 +821,10 @@ def remove_duplicates(data):
         #If some matches are commissioning data or have bad ak, rm from consideration
         comindx= numpy.array(['apogee.n.c'.encode('utf-8') in s for s in data['APSTAR_ID'][nm2]])
         comindx+= numpy.array(['apogee.s.c'.encode('utf-8') in s for s in data['APSTAR_ID'][nm2]])
-        nanindx = numpy.isnan(data['AK_TARG'][nm2])
-        nanindx = [not i for i in nanindx]
-        goodak= (nanindx)*(data['AK_TARG'][nm2] > -50.)
-        notcomindx = [not i for i in comindx]
-        hisnr= numpy.argmax(data['SNR'][nm2]*(notcomindx)*goodak) #effect. make com zero SNR
-        if numpy.amax(data['SNR'][nm2]*(notcomindx)*goodak) == 0.: #all commissioning or bad ak, treat all equally
+        goodak= (True^numpy.isnan(data['AK_TARG'][nm2]))\
+            *(data['AK_TARG'][nm2] > -50.)
+        hisnr= numpy.argmax(data['SNR'][nm2]*(True^comindx)*goodak) #effect. make com zero SNR
+        if numpy.amax(data['SNR'][nm2]*(True^comindx)*goodak) == 0.: #all commissioning or bad ak, treat all equally
             hisnr= numpy.argmax(data['SNR'][nm2])
         tindx= numpy.ones(len(nm2),dtype='bool')
         tindx[hisnr]= False
