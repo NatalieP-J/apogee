@@ -595,7 +595,7 @@ def _download_file(downloadPath,filePath,dr,verbose=False,spider=False,readable=
             subprocess.check_call(cmd)
             if not spider: shutil.move(tmp_savefilename,filePath)
             downloading= False
-            os.chmod(filePath,0644)
+            os.chmod(filePath,0o644)
             if interrupted:
                 raise KeyboardInterrupt
         except subprocess.CalledProcessError as e:
