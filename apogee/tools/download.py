@@ -13,6 +13,7 @@ from apogee.tools import path
 _DR10_URL= 'http://data.sdss3.org/sas/dr10'
 _DR12_URL= 'http://data.sdss3.org/sas/dr12'
 _DR13_URL= 'http://data.sdss.org/sas/dr13'
+_DR14_URL= 'http://data.sdss.org/sas/dr14'
 _PROPRIETARY_URL= 'https://data.sdss.org/sas/apogeework'
 _MAX_NTRIES= 2
 _ERASESTR= "                                                                                "
@@ -606,6 +607,11 @@ def _download_file(downloadPath,filePath,dr,verbose=False,spider=False,readable=
             elif not 'exit status 4' in str(e):
                 interrupted= True
             os.remove(tmp_savefilename)
+        except OSError as e:
+            if e.errno == os.errno.ENOENT:
+                raise OSError("Automagically downloading catalogs and data files requires the wget program; please install wget and try again...")
+            else:
+                raise
         finally:
             if os.path.exists(tmp_savefilename):
                 os.remove(tmp_savefilename)
@@ -623,6 +629,7 @@ def _base_url(dr,rc=False):
     if dr == '10': return _DR10_URL
     elif dr == '12': return _DR12_URL
     elif dr == '13': return _DR13_URL
+    elif dr == '14': return _DR14_URL
     else: return _PROPRIETARY_URL
 
 def _dr_string(dr):

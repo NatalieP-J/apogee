@@ -239,7 +239,7 @@ def allStar(rmcommissioning=True,
     elif adddist:
         warnings.warn("Distances not added because matching requires the uninstalled esutil module",RuntimeWarning)
     if _ESUTIL_LOADED and (path._APOGEE_REDUX.lower() == 'current' \
-                               or 'l30' in path._APOGEE_REDUX.lower() \
+                               or 'l3' in path._APOGEE_REDUX.lower() \
                                or int(path._APOGEE_REDUX[1:]) > 600):
         data= esutil.numpy_util.add_fields(data,[('METALS', float),
                                                  ('ALPHAFE', float)])
@@ -794,7 +794,8 @@ def remove_duplicates(data):
         raise ImportError("apogee.tools.read.remove_duplicates function requires the esutil module for catalog matching")
     tdata= copy.copy(data)
     #Match the data against itself
-    if _ESUTIL_VERSION[1] >= 5 and _ESUTIL_VERSION >= 3:
+    if _ESUTIL_VERSION[1] >= 5 \
+            and (_ESUTIL_VERSION[1] >= 6 or _ESUTIL_VERSION[2] >= 3):
         h= esutil.htm.Matcher(10,data['RA'],data['DEC'])
         m1,m2,d12 = h.match(data['RA'],data['DEC'],
                             2./3600.,maxmatch=0) #all matches
@@ -810,7 +811,8 @@ def remove_duplicates(data):
     dup= sm1[1:] == sm1[:-1]
     for d in tqdm.tqdm(sm1[:-1][dup]):
         #Find the matches for just this duplicate
-        if _ESUTIL_VERSION[1] >= 5 and _ESUTIL_VERSION >= 3:
+        if _ESUTIL_VERSION[1] >= 5 \
+                and (_ESUTIL_VERSION[1] >= 6 or _ESUTIL_VERSION[2] >= 3):
             nm1,nm2,nd12= h.match(data['RA'][d],data['DEC'][d],
                                   2./3600.,maxmatch=0) #all matches
         else:
