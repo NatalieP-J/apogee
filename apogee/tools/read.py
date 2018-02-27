@@ -107,7 +107,8 @@ def allStar(rmcommissioning=True,
             adddist=False,
             distredux=None,
             rmdups=False,
-            raw=False):
+            raw=False,
+            mjd=58104):
     """
     NAME:
        allStar
@@ -125,12 +126,14 @@ def allStar(rmcommissioning=True,
        distredux= (default: DR default) reduction on which the distances are based
        rmdups= (False) if True, remove duplicates (very slow)
        raw= (False) if True, just return the raw file, read w/ fitsio
+       mjd= (58104) MJD of version for monthly internal pipeline runs
     OUTPUT:
        allStar data
     HISTORY:
        2013-09-06 - Written - Bovy (IAS)
+       2018-01-22 - Edited for new monthly pipeline runs - Bovy (UofT)
     """
-    filePath= path.allStarPath()
+    filePath= path.allStarPath(mjd=mjd)
     if not os.path.exists(filePath):
         download.allStar()
     #read allStar file
@@ -569,7 +572,7 @@ def apogeeObject(field_name,dr=None,
     return data
 
 @specOnAspcapWavegrid
-def aspcapStar(loc_id,apogee_id,ext=1,dr=None,header=True,
+def aspcapStar(loc_id,apogee_id,telescope='apo25m',ext=1,dr=None,header=True,
                aspcapWavegrid=False):
     """
     NAME:
@@ -577,8 +580,9 @@ def aspcapStar(loc_id,apogee_id,ext=1,dr=None,header=True,
     PURPOSE:
        Read an aspcapStar file for a given star
     INPUT:
-       loc_id - location ID (field for 1m targets)
+       loc_id - location ID (field for 1m targets or after DR14)
        apogee_id - APOGEE ID of the star
+       telescope= telescope used ('apo25m' [default], 'apo1m', 'lco25m')
        ext= (1) extension to load
        header= (True) if True, also return the header
        dr= return the path corresponding to this data release (general default)
@@ -588,23 +592,26 @@ def aspcapStar(loc_id,apogee_id,ext=1,dr=None,header=True,
        aspcapStar file or (aspcapStar file, header)
     HISTORY:
        2014-11-25 - Written - Bovy (IAS)
+       2018-01-22 - Edited for new post-DR14 path structure - Bovy (UofT)
     """
-    filePath= path.aspcapStarPath(loc_id,apogee_id,dr=dr)
+    filePath= path.aspcapStarPath(loc_id,apogee_id,dr=dr,telescope=telescope)
     if not os.path.exists(filePath):
-        download.aspcapStar(loc_id,apogee_id,dr=dr)
+        download.aspcapStar(loc_id,apogee_id,dr=dr,telescope=telescope)
     data= fitsread(filePath,ext,header=header)
     return data
 
 @specOnAspcapWavegrid
-def apStar(loc_id,apogee_id,ext=1,dr=None,header=True,aspcapWavegrid=False):
+def apStar(loc_id,apogee_id,telescope='apo25m',
+           ext=1,dr=None,header=True,aspcapWavegrid=False):
     """
     NAME:
        apStar
     PURPOSE:
        Read an apStar file for a given star
     INPUT:
-       loc_id - location ID (field for 1m targets)
+       loc_id - location ID (field for 1m targets or after DR14)
        apogee_id - APOGEE ID of the star
+       telescope= telescope used ('apo25m' [default], 'apo1m', 'lco25m')
        ext= (1) extension to load
        header= (True) if True, also return the header
        dr= return the path corresponding to this data release (general default)
@@ -614,10 +621,11 @@ def apStar(loc_id,apogee_id,ext=1,dr=None,header=True,aspcapWavegrid=False):
        apStar file or (apStar file, header)
     HISTORY:
        2015-01-13 - Written - Bovy (IAS)
+       2018-01-22 - Edited for new post-DR14 path structure - Bovy (UofT)
     """
-    filePath= path.apStarPath(loc_id,apogee_id,dr=dr)
+    filePath= path.apStarPath(loc_id,apogee_id,dr=dr,telescope=telescope)
     if not os.path.exists(filePath):
-        download.apStar(loc_id,apogee_id,dr=dr)
+        download.apStar(loc_id,apogee_id,dr=dr,telescope=telescope)
     data= fitsread(filePath,ext,header=header)
     return data
 

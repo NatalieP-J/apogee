@@ -93,14 +93,15 @@ def apallPath(visit=False):
             return os.path.join(_APOGEE_DATA,
                                 'allStar-'+_APOGEE_ASPCAP_REDUX+'.fits')
 
-def allStarPath(dr=None,_old=False):
+def allStarPath(dr=None,_old=False,mjd=58104):
     """
     NAME:
        allStarPath
     PURPOSE:
        returns the path of the relevant file
     INPUT:
-       dr= return the path corresponding to this data release       
+       dr= return the path corresponding to this data release
+       mjd= (58104) MJD of version for monthly internal pipeline runs
     OUTPUT:
        path string
     REQUIREMENTS:
@@ -109,6 +110,7 @@ def allStarPath(dr=None,_old=False):
     HISTORY:
        2012-01-02 - Written - Bovy (IAS)
        2012-05-30 - Edited for ASPCAP - Bovy (IAS)
+       2018-01-22 - Edited for new monthly pipeline runs - Bovy (UofT)
     """
     if dr is None: dr= _default_dr()
     redux= _redux_dr(dr=dr)
@@ -130,10 +132,11 @@ def allStarPath(dr=None,_old=False):
             return os.path.join(specReduxPath,'r8','stars','l31c',
                                 _redux_dr(dr=dr),'allStar-%s.fits' % redux)
         elif dr == 'current':
-            return os.path.join(specReduxPath,'current','stars','l25_6d',
-                                _redux_dr(dr=dr),'allStar-%s.fits' % redux)
+            specASPCAPPath= apogeeSpectroASPCAPDirPath(dr=dr)
+            return os.path.join(specASPCAPPath,'t9','l31c',
+                                'allStar-t9-l31c-%i.fits' % mjd)
 
-def allVisitPath(dr=None,_old=False):
+def allVisitPath(dr=None,_old=False,mjd=58104):
     """
     NAME:
        allVisitPath
@@ -141,6 +144,7 @@ def allVisitPath(dr=None,_old=False):
        returns the path of the relevant file
     INPUT:
        dr= return the path corresponding to this data release       
+       mjd= (58104) MJD of version for monthly internal pipeline runs
     OUTPUT:
        path string
     REQUIREMENTS:
@@ -149,6 +153,7 @@ def allVisitPath(dr=None,_old=False):
     HISTORY:
        2012-01-02 - Written - Bovy (IAS)
        2012-05-30 - Edited for ASPCAP - Bovy (IAS)
+       2018-01-22 - Edited for new monthly pipeline runs - Bovy (UofT)
     """
     if dr is None: dr= _default_dr()
     redux= _redux_dr(dr=dr)
@@ -156,7 +161,7 @@ def allVisitPath(dr=None,_old=False):
         return os.path.join(_APOGEE_DATA,
                             'allVisit-%s.fits' % redux)
     else:
-        return allStarPath(dr=dr,_old=_old).replace('allStar','allVisit')
+        return allStarPath(dr=dr,_old=_old,mjd=mjd).replace('allStar','allVisit')
 
 def apokascPath():
     """
@@ -400,20 +405,22 @@ def apogeeObjectPath(field_name,dr=None):
     return os.path.join(apogeeTargetDirPath(dr=dr),
                         filename)
 
-def aspcapStarPath(loc_id,apogee_id,dr=None):
+def aspcapStarPath(loc_id,apogee_id,telescope='apo25m',dr=None):
     """
     NAME:
        aspcapStarPath
     PURPOSE:
        returns the path of the aspcapStar file
     INPUT:
-       loc_id - location ID (field for 1m targets)
+       loc_id - location ID (field for 1m targets or after DR14)
        apogee_id - APOGEE ID of the star
+       telescope= telescope used ('apo25m' [default], 'apo1m', 'lco25m')
        dr= return the path corresponding to this data release
     OUTPUT:
        path string
     HISTORY:
        2014-11-25 - Written - Bovy (IAS)
+       2018-01-22 - Edited for new post-DR14 path structure - Bovy (UofT)
     """
     if dr is None: dr= _default_dr()
     specReduxPath= apogeeSpectroReduxDirPath(dr=dr)
@@ -462,35 +469,27 @@ def aspcapStarPath(loc_id,apogee_id,dr=None):
                                 'aspcapStar-r8-%s-%s.fits' % (_redux_dr(dr=dr),
                                                               apogee_id))
     elif dr == 'current':
-        if isinstance(loc_id,str): #1m
-            return os.path.join(specReduxPath,'current','stars','l25_6d',
-                                _redux_dr(dr=dr),loc_id.strip(),
-                                'aspcapStar-current-%s-%s.fits' \
-                                    % (_redux_dr(dr=dr),
-                                       apogee_id.strip()))
-        elif loc_id ==1:
-            raise IOError('For 1m targets, give the FIELD instead of the location ID')
-        else:
-            return os.path.join(specReduxPath,'current','stars','l25_6d',
-                                _redux_dr(dr=dr),'%i' % loc_id,
-                                'aspcapStar-current-%s-%s.fits' \
-                                    % (_redux_dr(dr=dr),
-                                       apogee_id))
+        specASPCAPPath= apogeeSpectroASPCAPDirPath(dr=dr)
+        return os.path.join(specASPCAPPath,'t9','l31c',telescope,
+                            loc_id.strip(),
+                            'aspcapStar-t9-%s.fits' % (apogee_id.strip()))
     
-def apStarPath(loc_id,apogee_id,dr=None):
+def apStarPath(loc_id,apogee_id,telescope='apo25m',dr=None):
     """
     NAME:
        apStarPath
     PURPOSE:
        returns the path of the apStar file
     INPUT:
-       loc_id - location ID (field for 1m targets)
+       loc_id - location ID (field for 1m targets or after DR14)
        apogee_id - APOGEE ID of the star
+       telescope= telescope used ('apo25m' [default], 'apo1m', 'lco25m')
        dr= return the path corresponding to this data release
     OUTPUT:
        path string
     HISTORY:
        2015-01-13 - Written - Bovy (IAS)
+       2018-01-22 - Edited for new post-DR14 path structure - Bovy (UofT)
     """
     if dr is None: dr= _default_dr()
     specReduxPath= apogeeSpectroReduxDirPath(dr=dr)
@@ -532,16 +531,9 @@ def apStarPath(loc_id,apogee_id,dr=None):
                                 '%i' % loc_id,
                                 'apStar-r8-%s.fits' % apogee_id)
     elif dr == 'current':
-        if isinstance(loc_id,str): #1m
-            return os.path.join(specReduxPath,'current','stars','apo1m',
-                                loc_id.strip(),
-                                'apStar-current-%s.fits' % apogee_id.strip())
-        elif loc_id ==1:
-            raise IOError('For 1m targets, give the FIELD instead of the location ID')
-        else:
-            return os.path.join(specReduxPath,'current','stars','apo25m',
-                                '%i' % loc_id,
-                                'apStar-current-%s.fits' % apogee_id)
+        return os.path.join(specReduxPath,'t9','stars',telescope,
+                            loc_id.strip(),
+                            'apStar-t9-%s.fits' % apogee_id.strip())
 
 def apVisitPath(loc_id, mjd, fiberid, dr=None):
     """
@@ -854,6 +846,27 @@ def apogeeSpectroReduxDirPath(dr=None):
     if dr.lower() == 'current':
         return os.path.join(_APOGEE_DATA,'apogeework',
                             'apogee','spectro','redux')
+    else:
+        return os.path.join(_APOGEE_DATA,'dr%s' % dr,
+                            'apogee','spectro','redux')
+   
+def apogeeSpectroASPCAPDirPath(dr=None):
+    """
+    NAME:
+       apogeeSpectroASPCAPDirPath
+    PURPOSE:
+        returns the path of the spectro/aspcap dir
+    INPUT:
+       dr= return the path corresponding to this data release       
+    OUTPUT:
+       path string
+    HISTORY:
+       2018-01-22 - Written - Bovy (UofT)
+    """
+    if dr is None: dr= _default_dr()
+    if dr.lower() == 'current':
+        return os.path.join(_APOGEE_DATA,'apogeework',
+                            'apogee','spectro','aspcap')
     else:
         return os.path.join(_APOGEE_DATA,'dr%s' % dr,
                             'apogee','spectro','redux')
