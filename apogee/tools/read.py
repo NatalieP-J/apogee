@@ -143,6 +143,7 @@ def allStar(rmcommissioning=True,
     #Remove duplicates, cache
     if rmdups:
         dupsFilename= path.allStarPath().replace('.fits','-nodups.fits')
+        print(dupsFilename)
         if os.path.exists(dupsFilename):
             data= fitsread(dupsFilename)
         else:
