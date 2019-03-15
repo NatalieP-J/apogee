@@ -63,9 +63,9 @@ APOGEE_PIXMASK={0:"BADPIX",
                 12:"SIG_SKYLINE",
                 13:"SIG_TELLURIC",
                 14:"NOT_ENOUGH_PSF"}
-APOGEE_TARGET1_STR= dict((value, key) for key, value in APOGEE_TARGET1.iteritems())
-APOGEE_TARGET2_STR= dict((value, key) for key, value in APOGEE_TARGET2.iteritems())
-APOGEE_PIXMASK_STR= dict((value, key) for key, value in APOGEE_PIXMASK.iteritems())
+APOGEE_TARGET1_STR= dict((value, key) for key, value in APOGEE_TARGET1.items())
+APOGEE_TARGET2_STR= dict((value, key) for key, value in APOGEE_TARGET2.items())
+APOGEE_PIXMASK_STR= dict((value, key) for key, value in APOGEE_PIXMASK.items())
 BADPIXMASK= 2**APOGEE_PIXMASK_STR["BADPIX"]+2**APOGEE_PIXMASK_STR["CRPIX"]\
     +2**APOGEE_PIXMASK_STR["SATPIX"]+2**APOGEE_PIXMASK_STR["UNFIXABLE"]\
     +2**APOGEE_PIXMASK_STR["BADDARK"]+2**APOGEE_PIXMASK_STR["BADFLAT"]\
