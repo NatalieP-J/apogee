@@ -101,8 +101,8 @@ DEPENDENCIES AND PYTHON VERSIONS
 This package requires the Python packages `NumPy
 <http://numpy.scipy.org/>`__, `Scipy <http://www.scipy.org/>`__,
 `Matplotlib <http://matplotlib.sourceforge.net/>`__, `tqdm
-<http://github.com/tqdm/tqdm>`__, `fitsio
-<http://github.com/esheldon/fitsio>`__, `esutil
+<http://github.com/tqdm/tqdm>`__, `astropy
+<https://github.com/astropy/astropy>`__, `esutil
 <http://code.google.com/p/esutil/>`__, `galpy
 <http://github.com/jobovy/galpy>`__, `isodist
 <http://github.com/jobovy/isodist>`__, and `periodictable
@@ -111,10 +111,8 @@ This package requires the Python packages `NumPy
 python 3, it is not listed as a dependency in the ``setup.py`` file
 and must be installed separately; if ``esutil`` is not installed, some
 functionality in ``apogee.tools.read`` is lost for which warnings are
-issued. If `fitsio <http://github.com/esheldon/fitsio>`__ is not
-installed, the code will fall back onto `astropy
-<http://docs.astropy.org/en/stable/io/fits/index.html>`__ for reading
-FITS files.
+issued. With standard installation, astropy is used to read FITS files. Installing `fitsio <http://github.com/esheldon/fitsio>`__ will cause those routines to take precedence over `astropy
+<http://docs.astropy.org/en/stable/io/fits/index.html>`__.
 
 The ``apogee`` package should work both in python 2 and 3 (thanks to
 `@mrawls <https://github.com/mrawls>`__ for adding python 3
@@ -134,8 +132,8 @@ RECENTLY CHANGED TO BE MORE CONSISTENT WITH SDSS' OWN ENVIRONMENT
 VARIABLES**)
 
 * **SDSS_LOCAL_SAS_MIRROR**: top-level directory that will be used to (selectively) mirror the SDSS SAS
-* **RESULTS_VERS**: APOGEE reduction version (e.g., v304 for DR10, v402 for DR11, v603 for DR12, l30e.2 for DR13, l31c.2 for DR14); note that you can set and change the DR on the fly using the function ``change_dr`` in ``apogee.tools.path``.
-* **APOGEE_APOKASC_REDUX**: APOKASC catalog version (e.g., v6.2a)
+* **RESULTS_VERS**: APOGEE reduction version (e.g., v304 for DR10, v402 for DR11, v603 for DR12, l30e.2 for DR13, l31c.2 for DR14); note that you can set and change the DR on the fly using the function ``change_dr`` in ``apogee.tools.path`` (also available in ``apogee.tools.read`` for convenience).
+* **APOGEE_APOKASC_REDUX**: APOKASC catalog version (e.g., v6.2a); note that this does not load the public catalog and is only for internal SDSS use.
 
 In order to use this code, you will need to set these environment variables
 on your machine with commands like `export SDSS_LOCAL_SAS_MIRROR="/desired/path/to/SDSS/data"`
@@ -253,12 +251,30 @@ re-use. Use as::
 
 	allStar= apread.allStar(rmcommissioning=True,rmdups=True)
 
-We can read the APOKASC catalog using::
+If you are using DR14 and want to use the (less noisy) parameters and
+abundances derived using the `astroNN
+<https://github.com/henrysky/astroNN_spectra_paper_figures>`__ method
+of `Leung & Bovy (2019a) <https://arxiv.org/abs/1808.04428>`__, the
+distances to APOGEE stars determined using a neural-network approach
+trained on Gaia by Leung & Bovy (2019b; in prep.), and the ages from
+`Mackereth, Bovy, Leung, et al. (2019)
+<http://arxiv.org/abs/1901.04502>`__ do::
 
-   apokasc= apread.apokasc()
+   allStar= apread.allStar(use_astroNN=True)
 
-This reads the APOKASC catalog and matches and combines it with the allStar
-catalog.
+which can also be combined with any other ``allStar`` option. The
+``astroNN`` results are swapped in for the regular ASPCAP results, so
+switching between the two is as simple as changing the read of the
+file. The recommended distances are ``weighted_dist`` (pc) and the
+ages are ``astroNN_age``.  You can load only the astroNN abundances,
+only the distances, or only the ages using ``use_astroNN_abundances``,
+``use_astroNN_distances``, and ``use_astroNN_ages``, respectively.
+
+We can read the red-clump catalog from `Bovy et al. (2014) <http://adsabs.harvard.edu/abs/2014ApJ...790..127B>`__  using (any of its releases)::
+
+   aporc= apread.rcsample()
+
+This can also take the ``use_astroNN=True`` option to swap in the astroNN parameters and abundances.
 
 We can also read spectra as follows::
 
@@ -298,28 +314,26 @@ but using ``change_dr`` allows you to change the data release without
 having to specify it for every function (and also allows you to change
 it for functions that do not support the ``dr=`` keyword).
 
-We can also read individual apVisit files, provided the location ID, MJD, and fiber are known.
+We can also read individual apVisit files, provided the plate ID, MJD, and fiber are known.
 Otherwise, it functions similarly to how you would read in an apStar file. If you are interested
-in a particular target and don't know the location ID, MJD and fiber *a priori*, `this website 
-<http://dr12.sdss3.org/basicIRSpectra>`__ can be of great use. 
-Simply enter the apogee ID into the right-hand side and select the "Visits" tab from the search results page.
+in a particular target and don't know the plate ID, MJD, and fiber *a priori*, the `SDSS Science
+Archive Server (SAS) <https://dr14.sdss.org/infrared/spectrum/search>`__
+for your DR of choice can be of great use. At present, up to DR14 is supported.
 
-It is recommended to set `header=False` when reading in apVisit files if you want a 1D flux array.
-Note that apVisit data is *not* on the standard apogee wavelength grid, and `ext=4` must be used to
+Note that apVisit data is **not** on the standard apogee wavelength grid, and `ext=4` must be used to
 retrieve the wavelength data that corresponds with the fluxes. An example::
 
     import apogee.tools.read as apread
-    # the three arguments are location ID, MJD, and fiber ID
-    spec = apread.apVisit(7439, 56763, 207, ext=1, header=False)
-    specerr = apread.apVisit(7439, 56763, 207, ext=2, header=False)
-    wave = apread.apVisit(7439, 56763, 207, ext=4, header=False)
-    header = apread.apVisit(7439, 56763, 207, ext=1, header=True)[1]
+    plateId = 7439
+    mjd = 56763
+    fiberId = 207
+    spec = apread.apVisit(plateId, mjd, fiberId, ext=1)
+    specerr = apread.apVisit(plateId, mjd, fiberId, ext=2)
+    wave = apread.apVisit(plateId, mjd, fiberId, ext=4)
+    header = apread.apVisit(plateId, mjd, fiberId, ext=0, header=True)
     
-Note that reading in flux or wavelength information simultaneously with the header will yield a dataset
-that is not sorted by increasing flux order, and is separated into three arrays for the blue/green/red chips::
-
-    weird_format_spec = apread.apVisit(7439, 56763, 207, ext=1, header=True)[0]
-    weird_format_wave = apread.apVisit(7439, 56763, 207, ext=4, header=True)[0]
+Note that you may access either data **OR** header information with a single call
+to `apread.apVisit`. Take care when specifying which FITS extension you want.
 
 If you wish to continuum normalize an apVisit spectrum, you can! The procedure is slightly different
 from normalizing a series of apStar spectra (see the section on "The APOGEE LSF and continuum normalization"
@@ -678,9 +692,9 @@ their uncertainties using one of two methods (specified using the
 
 The first method is ``type='aspcap'``, which is also the default. This
 is an implementation of the default APOGEE/ASPCAP
-continuum-normalization (see Garcia Perez et al. 2015), which
-iteratively searches for the upper envelope of the spectrum. An
-example of this procedure is the following::
+continuum-normalization in data releases < 14 (see Garcia Perez et
+al. 2015), which iteratively searches for the upper envelope of the
+spectrum. An example of this procedure is the following::
 
 	aspec= apread.apStar(4159,'2M07000348+0319407',ext=1,header=False)[1]
 	aspecerr= apread.apStar(4159,'2M07000348+0319407',ext=2,header=False)[1]
@@ -702,6 +716,8 @@ in ``aspcapStar``::
 .. image:: _readme_files/_continuum_aspcap_example.png
 
 which demonstrates very good agreement.
+
+In DR14, ASPCAP changed its pseudo-continuum normalization from an iterative search to a simple fourth-order polynomial fit. This can be done using the code above by specifying ``niter=0`` in the call to ``continuum.fit``.
 
 The second method is ``type='cannon'``, which is an implementation of
 a Cannon-style continuum-normalization (see `Ness et al. 2015
